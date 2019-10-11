@@ -1,13 +1,8 @@
-# Google Provider for OAuth 2.0 Client
+# Ozwillo Provider for OAuth 2.0 Client
 
-[![Join the chat](https://img.shields.io/badge/gitter-join-1DCE73.svg)](https://gitter.im/thephpleague/oauth2-google)
-[![Build Status](https://img.shields.io/travis/thephpleague/oauth2-google.svg)](https://travis-ci.org/thephpleague/oauth2-google)
-[![Code Coverage](https://img.shields.io/coveralls/thephpleague/oauth2-google.svg)](https://coveralls.io/r/thephpleague/oauth2-google)
-[![Code Quality](https://img.shields.io/scrutinizer/g/thephpleague/oauth2-google.svg)](https://scrutinizer-ci.com/g/thephpleague/oauth2-google/)
-[![License](https://img.shields.io/packagist/l/league/oauth2-google.svg)](https://github.com/thephpleague/oauth2-google/blob/master/LICENSE)
-[![Latest Stable Version](https://img.shields.io/packagist/v/league/oauth2-google.svg)](https://packagist.org/packages/league/oauth2-google)
+This package provides Ozwillo OAuth 2.0 support for the PHP League's [OAuth 2.0 Client](https://github.com/thephpleague/oauth2-client).
 
-This package provides Google OAuth 2.0 support for the PHP League's [OAuth 2.0 Client](https://github.com/thephpleague/oauth2-client).
+According to the doc: https://doc.ozwillo.com
 
 This package is compliant with [PSR-1][], [PSR-2][] and [PSR-4][]. If you notice compliance oversights, please send
 a patch via pull request.
@@ -26,23 +21,18 @@ The following versions of PHP are supported.
 * PHP 7.3
 
 This package uses [OpenID Connect][openid-connect] to authenticate users with
-Google accounts.
+Ozwillo accounts.
 
-To use this package, it will be necessary to have a Google client ID and client
-secret. These are referred to as `{google-client-id}` and `{google-client-secret}`
+To use this package, it will be necessary to have an Ozwillo client ID and client
+secret. These are referred to as `{ozwillo-client-id}` and `{ozwillo-client-secret}`
 in the documentation.
-
-Please follow the [Google instructions][oauth-setup] to create the required credentials.
-
-[openid-connect]: https://developers.google.com/identity/protocols/OpenIDConnect
-[oauth-setup]: https://developers.google.com/identity/protocols/OpenIDConnect#registeringyourapp
 
 ## Installation
 
 To install, use composer:
 
 ```sh
-composer require league/oauth2-google
+composer require angelsbaytech/oauth2-ozwillo
 ```
 
 ## Usage
@@ -50,13 +40,13 @@ composer require league/oauth2-google
 ### Authorization Code Flow
 
 ```php
-use League\OAuth2\Client\Provider\Google;
+use League\OAuth2\Client\Provider\Ozwillo;
 
-$provider = new Google([
-    'clientId'     => '{google-client-id}',
-    'clientSecret' => '{google-client-secret}',
+$provider = new Ozwillo([
+    'clientId'     => '{ozwillo-client-id}',
+    'clientSecret' => '{ozwillo-client-secret}',
     'redirectUri'  => 'https://example.com/callback-url',
-    'hostedDomain' => 'example.com', // optional; used to restrict access to users on your G Suite/Google Apps for Business accounts
+    'hostedDomain' => 'example.com', // optional; used to restrict access to users on your G Suite/Ozwillo Apps for Business accounts
 ]);
 
 if (!empty($_GET['error'])) {
@@ -114,18 +104,17 @@ if (!empty($_GET['error'])) {
 
 #### Available Options
 
-The `Google` provider has the following [options][auth-params]:
+The `Ozwillo` provider has the following [options][auth-params]:
 
 - `accessType` to use online or offline access
 - `hostedDomain` to authenticate G Suite users
 - `prompt` to modify the prompt that the user will see
 - `scopes` to request access to additional user information
 
-[auth-params]: https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters
 
 #### Accessing Token JWT
 
-Google provides a [JSON Web Token][jwt] (JWT) with all access tokens. This token
+Ozwillo provides a [JSON Web Token][jwt] (JWT) with all access tokens. This token
 [contains basic information][openid-jwt] about the authenticated user. The JWT
 can be accessed from the `id_token` value of the access token:
 
@@ -141,7 +130,6 @@ Parsing the JWT will require a [JWT parser][jwt-parsers]. Refer to parser
 documentation for instructions.
 
 [jwt]: https://jwt.io/
-[openid-jwt]: https://developers.google.com/identity/protocols/OpenIDConnect#obtainuserinfo
 [jwt-parsers]: https://packagist.org/search/?q=jwt
 
 ### Refreshing a Token
@@ -149,11 +137,11 @@ documentation for instructions.
 Refresh tokens are only provided to applications which request offline access. You can specify offline access by setting the `accessType` option in your provider:
 
 ```php
-use League\OAuth2\Client\Provider\Google;
+use League\OAuth2\Client\Provider\Ozwillo;
 
-$provider = new Google([
-    'clientId'     => '{google-client-id}',
-    'clientSecret' => '{google-client-secret}',
+$provider = new Ozwillo([
+    'clientId'     => '{ozwillo-client-id}',
+    'clientSecret' => '{ozwillo-client-secret}',
     'redirectUri'  => 'https://example.com/callback-url',
     'accessType'   => 'offline',
 ]);
@@ -179,12 +167,12 @@ $authUrl = $provider->getAuthorizationUrl(['prompt' => 'consent']);
 Now you have everything you need to refresh an access token using a refresh token:
 
 ```php
-use League\OAuth2\Client\Provider\Google;
+use League\OAuth2\Client\Provider\Ozwillo;
 use League\OAuth2\Client\Grant\RefreshToken;
 
-$provider = new Google([
-    'clientId'     => '{google-client-id}',
-    'clientSecret' => '{google-client-secret}',
+$provider = new Ozwillo([
+    'clientId'     => '{ozwillo-client-id}',
+    'clientSecret' => '{ozwillo-client-secret}',
     'redirectUri'  => 'https://example.com/callback-url',
 ]);
 
@@ -205,8 +193,6 @@ $authorizationUrl = $provider->getAuthorizationUrl([
 ]);
 ```
 
-[scopes]: https://developers.google.com/identity/protocols/googlescopes
-
 ## Testing
 
 Tests can be run with:
@@ -221,17 +207,6 @@ Style checks can be run with:
 composer check
 ```
 
-## Contributing
-
-Please see [CONTRIBUTING](https://github.com/thephpleague/oauth2-google/blob/master/CONTRIBUTING.md) for details.
-
-
-## Credits
-
-- [Woody Gilk](https://github.com/shadowhand)
-- [All Contributors](https://github.com/thephpleague/oauth2-google/contributors)
-
-
 ## License
 
-The MIT License (MIT). Please see [License File](https://github.com/thephpleague/oauth2-google/blob/master/LICENSE) for more information.
+The MIT License (MIT). Please see [License File](https://github.com/angelsbaytech/oauth2-ozwillo/blob/master/LICENSE) for more information.
