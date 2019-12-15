@@ -74,6 +74,9 @@ class Ozwillo extends AbstractProvider
         }
 
         $options['scope'] = array_unique($scopes);
+        if (isset($options['client_id'])) {
+            $this->clientId = $options['client_id'];
+        }
 
         return parent::getAuthorizationParameters($options);
     }
