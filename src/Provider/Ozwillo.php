@@ -167,7 +167,7 @@ class Ozwillo extends AbstractProvider
             );
         }
         if (isset($params['client_id'])) {
-            array_push($response, ['client_id' => $params['client_id']]);
+            $response['client_id'] = $params['client_id'];
         }
         $prepared = $this->prepareAccessTokenResponse($response);
         $token    = $this->createAccessToken($prepared, $grant);
