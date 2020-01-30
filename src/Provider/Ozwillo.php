@@ -5,8 +5,11 @@ namespace League\OAuth2\Client\Provider;
 use League\OAuth2\Client\Exception\HostedDomainException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use UnexpectedValueException;
 
 class Ozwillo extends AbstractProvider
 {
@@ -77,6 +80,10 @@ class Ozwillo extends AbstractProvider
         if (isset($options['client_id'])) {
             $this->clientId = $options['client_id'];
         }
+        if (isset($options['redirect_uri'])) {
+            $this->redirectUri = $options['redirect_uri'];
+        }
+        $options['redirect_uri'] = $this->redirectUri;
 
         return parent::getAuthorizationParameters($options);
     }
@@ -90,7 +97,7 @@ class Ozwillo extends AbstractProvider
             'profile',
             'address',
             'phone',
-            'offline_access'
+            'offline_access',
         ];
     }
 
@@ -123,5 +130,48 @@ class Ozwillo extends AbstractProvider
         $user = new OzwilloUser($response);
 
         return $user;
+    }
+
+    /**
+     * Requests an access token using a specified grant and option set.
+     *
+     * @param  mixed $grant
+     * @param  array $options
+     * @throws IdentityProviderException
+     * @return AccessTokenInterface
+     *  $ozwilloProvider->getAccessToken('authorization_code', [
+        'code' => $request->get('code'),
+        'state' => $request->get('state'),
+        'client_id' => $collectivityOzwillo->getClientId(),
+        'client_secret' => $collectivityOzwillo->getClientSecret(),
+        'redirect_uri' => $request->get('redirect_uri'),
+        ]);
+     */
+    public function getAccessToken($grant, array $options = [])
+    {
+        $grant = $this->verifyGrant($grant);
+
+        $params = [
+            'code'     => (isset($options['code'])) ? $options['code'] : '',
+            'client_id'     => (isset($options['client_id'])) ? $options['client_id'] : $this->clientId,
+            'client_secret' => (isset($options['client_secret'])) ? $options['client_secret'] : $this->clientId,
+            'redirect_uri'  => (isset($options['redirect_uri'])) ? $options['redirect_uri'] : $this->redirectUri,
+        ];
+
+        $params   = $grant->prepareRequestParameters($params, $options);
+        $request  = $this->getAccessTokenRequest($params);
+        $response = $this->getParsedResponse($request);
+        if (false === is_array($response)) {
+            throw new UnexpectedValueException(
+                'Invalid response received from Authorization Server. Expected JSON.'
+            );
+        }
+        if (isset($params['client_id'])) {
+            array_push($response, ['client_id' => $params['client_id']]);
+        }
+        $prepared = $this->prepareAccessTokenResponse($response);
+        $token    = $this->createAccessToken($prepared, $grant);
+
+        return $token;
     }
 }
