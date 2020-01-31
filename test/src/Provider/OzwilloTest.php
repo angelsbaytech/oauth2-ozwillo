@@ -15,14 +15,18 @@ class OzwilloTest extends TestCase
 {
     /** @var OzwilloProvider */
     protected $provider;
+
     protected function setUp()
     {
-        $this->provider = new OzwilloProvider([
-            'clientId' => 'mock_client_id',
-            'clientSecret' => 'mock_secret',
-            'redirectUri' => 'none'
-        ]);
+        $this->provider = new OzwilloProvider(
+            [
+                'clientId' => 'mock_client_id',
+                'clientSecret' => 'mock_secret',
+                'redirectUri' => 'none',
+            ]
+        );
     }
+
     public function testAuthorizationUrl()
     {
         $url = $this->provider->getAuthorizationUrl();
@@ -52,12 +56,21 @@ class OzwilloTest extends TestCase
         $this->assertContains('openid', $query['scope']);
         $this->assertAttributeNotEmpty('state', $this->provider);
     }
+
     public function testBaseAccessTokenUrl()
     {
         $url = $this->provider->getBaseAccessTokenUrl([]);
         $uri = parse_url($url);
         $this->assertEquals('/a/token', $uri['path']);
     }
+
+    public function testGetDeletePendingInstanceUrl()
+    {
+        $url = $this->provider->getResourceOwnerDeletePendingInstanceUrl('instance-id-123');
+        $uri = parse_url($url);
+        $this->assertEquals('/apps/pending-instance/instance-id-123', $uri['path']);
+    }
+
     /**
      * @link https://accounts.google.com/.well-known/openid-configuration
      */
@@ -119,6 +132,7 @@ class OzwilloTest extends TestCase
         $this->assertArrayHasKey('locale', $user);
         $this->assertArrayHasKey('updated_at', $user);
     }
+
     public function testErrorResponse()
     {
         // Mock
@@ -141,13 +155,16 @@ class OzwilloTest extends TestCase
             $response->getBody->called()
         );
     }
+
     /**
      * @return AccessToken
      */
     private function mockAccessToken()
     {
-        return new AccessToken([
-            'access_token' => 'mock_access_token',
-        ]);
+        return new AccessToken(
+            [
+                'access_token' => 'mock_access_token',
+            ]
+        );
     }
 }

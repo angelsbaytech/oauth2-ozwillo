@@ -15,6 +15,10 @@ class Ozwillo extends AbstractProvider
 {
     use BearerAuthorizationTrait;
 
+    /**
+     * @var string HTTP method used to DELETE Instance provision on error.
+     */
+    const METHOD_DELETE = 'DELETE';
 
     /**
      * @var array List of scopes that will be used for authentication.
@@ -34,6 +38,11 @@ class Ozwillo extends AbstractProvider
     public function getResourceOwnerDetailsUrl(AccessToken $token)
     {
         return 'https://accounts.ozwillo-preprod.eu/a/userinfo';
+    }
+
+    public function getResourceOwnerDeletePendingInstanceUrl($instanceId)
+    {
+        return sprintf('https://accounts.ozwillo-preprod.eu/apps/pending-instance/%s', $instanceId);
     }
 
     protected function getAuthorizationParameters(array $options)
@@ -140,26 +149,26 @@ class Ozwillo extends AbstractProvider
      * @throws IdentityProviderException
      * @return AccessTokenInterface
      *  $ozwilloProvider->getAccessToken('authorization_code', [
-        'code' => $request->get('code'),
-        'state' => $request->get('state'),
-        'client_id' => $collectivityOzwillo->getClientId(),
-        'client_secret' => $collectivityOzwillo->getClientSecret(),
-        'redirect_uri' => $request->get('redirect_uri'),
-        ]);
+     * 'code' => $request->get('code'),
+     * 'state' => $request->get('state'),
+     * 'client_id' => $collectivityOzwillo->getClientId(),
+     * 'client_secret' => $collectivityOzwillo->getClientSecret(),
+     * 'redirect_uri' => $request->get('redirect_uri'),
+     * ]);
      */
     public function getAccessToken($grant, array $options = [])
     {
         $grant = $this->verifyGrant($grant);
 
         $params = [
-            'code'     => (isset($options['code'])) ? $options['code'] : '',
-            'client_id'     => (isset($options['client_id'])) ? $options['client_id'] : $this->clientId,
+            'code' => (isset($options['code'])) ? $options['code'] : '',
+            'client_id' => (isset($options['client_id'])) ? $options['client_id'] : $this->clientId,
             'client_secret' => (isset($options['client_secret'])) ? $options['client_secret'] : $this->clientId,
-            'redirect_uri'  => (isset($options['redirect_uri'])) ? $options['redirect_uri'] : $this->redirectUri,
+            'redirect_uri' => (isset($options['redirect_uri'])) ? $options['redirect_uri'] : $this->redirectUri,
         ];
 
-        $params   = $grant->prepareRequestParameters($params, $options);
-        $request  = $this->getAccessTokenRequest($params);
+        $params = $grant->prepareRequestParameters($params, $options);
+        $request = $this->getAccessTokenRequest($params);
         $response = $this->getParsedResponse($request);
         if (false === is_array($response)) {
             throw new UnexpectedValueException(
@@ -170,8 +179,26 @@ class Ozwillo extends AbstractProvider
             $response['client_id'] = $params['client_id'];
         }
         $prepared = $this->prepareAccessTokenResponse($response);
-        $token    = $this->createAccessToken($prepared, $grant);
+        $token = $this->createAccessToken($prepared, $grant);
 
         return $token;
+    }
+
+    /**
+     * https://doc.ozwillo.com/#s3-3bis-provider-dismiss
+     *
+     * @param $instanceId
+     * @return bool
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function dismissInstanceOnError($instanceId)
+    {
+        if (!$instanceId || empty($instanceId)) {
+            return false;
+        }
+        $httpClient = $this->getHttpClient();
+        $httpClient->request(self::METHOD_DELETE, $this->getResourceOwnerDeletePendingInstanceUrl($instanceId));
+
+        return true;
     }
 }
